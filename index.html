@@ -1,0 +1,113 @@
+<html>
+<head>
+<script src="common.js"></script>
+<script src="https://www.moneybutton.com/moneybutton.js"></script>
+<script type="text/javascript" src="https://unpkg.com/bsv@0.27.2/bsv.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+
+</head>
+<body>
+<div class="container is-fluid">
+  <div class="tile is-ancestor">
+    <div class="tile is-parent is-12">
+      <article class="tile is-child box">
+        <p class="content" id="tx_hash"></p>
+        <p class="title" id="title"></p>
+        <div class="content" id="paid">
+          <p>
+            <div id="moneybuttons"></div>
+          </p>
+          <p class="subtitle" id="timer"></p>
+        </div>
+        <div class="content" id="free">
+          <p>
+            <div id="realLinks"></div>
+          </p>
+        </div>
+      </article>
+    </div>
+  </div>
+
+<script language='javascript'>
+  var address = "149xadSKJcKdhgE4sMmcvx421nsGYwgkWo"
+  var amount = 0.008
+  var currency = "USD"
+  var type = "default"
+  var appName = "default"
+  var appUrl = "https://link.oyo.cash/?tx={tx_hash}"
+  var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
+
+  var countdown = 12; // seconds
+  var links = []
+
+  var generateMoneybutton = function(id) {
+    var resultHTML = ""
+    resultHTML += "<div class=\"money-button\""
+    resultHTML += "  data-label=\"" + links[id][0] + "\" "
+    resultHTML += "  data-outputs='[{"
+    resultHTML += "  \"script\": \"" + opReturnScript + "\","
+    resultHTML += "  \"amount\": \"0\","
+    resultHTML += "  \"currency\": \"BSV\""
+    resultHTML += "}, {"
+    resultHTML += "  \"address\": \"" + address + "\","
+    resultHTML += "  \"amount\": \"" + amount + "\","
+    resultHTML += "  \"currency\": \"" + currency + "\""
+    resultHTML += "}]'"
+    resultHTML += "  data-success-message=\"Redirecting...\""
+    resultHTML += "  data-button-id=\"" + id + "\" "
+    resultHTML += "  data-on-payment=\"onPayment\""
+    resultHTML += "></div><br />"
+    return resultHTML
+  }
+  var generateRealLinks = function(id) {
+    var resultHTML = ""
+    resultHTML += "<div class=\"links\"><a href=\"" + links[id][1] + "\">" + links[id][0] + "</a></div><br />"
+    return resultHTML
+  }
+  var onPayment = function(payment) {
+    window.location.replace(links[payment.buttonId][1]);
+  }
+
+  document.getElementById("free").style.display = "none";
+  document.getElementById("paid").style.display = "none";
+  if (getUrlVars() !== undefined && getUrlVars()["tx"] !== undefined && getUrlVars()["tx"].match(/^[0-9a-fA-F]{64}$/)) {
+    document.getElementById("tx_hash").innerHTML = getUrlVars()["tx"]
+    document.getElementById("title").innerHTML = "Open with"
+    document.getElementById("paid").style.display = "block";
+
+    // populate links
+    links.push([ "Blockchair", "https://blockchair.com/bitcoin-sv/transaction/" + getUrlVars()["tx"]])
+    links.push(["Whatsonchain", "https://whatsonchain.com/tx/" + getUrlVars()["tx"]])
+    links.push(["Bchsvexplorer", "https://bchsvexplorer.com/tx/" + getUrlVars()["tx"]])
+
+    var countdownInterval = setInterval(function() {
+      countdown--;
+      if (countdown > 0) {
+        document.getElementById("timer").innerHTML = "...or wait " + countdown + " seconds";
+      } else {
+        clearInterval(countdownInterval);
+        document.getElementById("free").style.display = "block";
+        document.getElementById("paid").style.display = "none";
+      }
+    }, 1000);
+
+    var moneybuttons = ""
+    for (let i = 0; i < links.length; ++i) {
+      moneybuttons += generateMoneybutton(i)
+    }
+    document.getElementById("moneybuttons").innerHTML = moneybuttons
+
+    var realLinks = ""
+    for (let i = 0; i < links.length; ++i) {
+      realLinks += generateRealLinks(i)
+    }
+    document.getElementById("realLinks").innerHTML = realLinks
+  } else {
+    document.getElementById("title").innerHTML = "Not a valid transaction hash"
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+  })
+</script>
+</body>
+</html>
