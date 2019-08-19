@@ -37,7 +37,7 @@
   var appUrl = "https://link.oyo.cash/?tx={tx_hash}"
   var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
 
-  var countdown = 15; // seconds
+  var countdown = 18; // seconds
   var links = []
 
   var appendMoneybutton = function(id) {
@@ -116,9 +116,9 @@
         links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
       }
       // Twetch
-//      if () {
-//        links.push(["Twetch", "http://twetch.app/t/" + getUrlVars()["tx"]])
-//      }
+      if ((r.c[0].out[0].s21 === "app" && r.c[0].out[0].s22 === "twetch") || (r.c[0].out[0].s23 === "app" && r.c[0].out[0].s24 === "twetch")) {
+        links.push(["Twetch", "http://twetch.app/t/" + getUrlVars()["tx"]])
+      }
       // Weather.sv
       if (r.c[0].out[0].s1 === "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn") {
         links.push(["Weathersv.app", "https://weathersv.app/channel/" + r.c[0].out[0].s4])
@@ -127,8 +127,6 @@
       links.push(["Blockchair", "https://blockchair.com/bitcoin-sv/transaction/" + getUrlVars()["tx"]])
       links.push(["Whatsonchain", "https://whatsonchain.com/tx/" + getUrlVars()["tx"]])
       links.push(["Bchsvexplorer", "https://bchsvexplorer.com/tx/" + getUrlVars()["tx"]])
-
-      console.log(links)
 
       for (let i = 0; i < links.length; ++i) {
         appendMoneybutton(i)
