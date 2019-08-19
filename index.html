@@ -47,7 +47,7 @@
     moneyButton.render(div, {
       label: links[id][0],
       successMessage: "Redirecting...",
-      buttonId: id,
+      buttonId: id+1,   // buttonId cannot be 0
       onPayment: paymentReceived,
       outputs: [
       {
@@ -73,7 +73,10 @@
     document.getElementById("realLinks").appendChild(p).appendChild(div).appendChild(a);
   }
   var paymentReceived = function(payment) {
-    window.location.replace(links[payment.buttonId][1]);
+    var id = payment.buttonId - 1   // fix for buttonId cannot be 0
+    var win = window.open(links[id][1], '_blank');
+    win.focus();
+//    window.location.replace(links[id][1]);
   }
 
   document.getElementById("free").style.display = "none";
@@ -88,17 +91,44 @@
       }
     }
     var b64 = btoa(JSON.stringify(query));
-    var url = "https://neongenesis.bitdb.network/q/1HcBPzWoKDL2FhCMbocQmLuFTYsiD73u1j/" + b64;
+    var url = "https://babel.bitdb.network/q/1DHDifPvtPgKFPZMRSxmVHhiPvFmxZwbfh/" + b64;
     var header = { headers: { key: "1Ma7jy7deP3WvBqD8PwGqrZkAh4BBsP758" } };
 
     fetch(url, header).then(function(r) {
       return r.json()
     }).then(function(r) {
-//          div.innerHTML = JSON.stringify(r.c);
+      // tx not found
+      if (r.c === undefined || r.c.length !== 1) {
+        document.getElementById("title").innerHTML = "Transaction not found"
+        return 0
+      }
+      // Memo
+      if (r.c[0].out[0].h1 === "6d02" || r.c[0].out[0].h1 === "6d03") {
+        links.push(["Memo", "https://memo.sv/post/" + getUrlVars()["tx"]])
+//        links.push(["Poster", "https://poster.cash/post/" + getUrlVars()["tx"]])
+      }
+      // b
+      if (r.c[0].out[0].s1 === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut") {
+        links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
+      }
+      // bcat
+      if (r.c[0].out[0].s1 === "15DHFxWZJT58f9nhyGnsRBqrgwK4W6h4Up") {
+        links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
+      }
+      // Twetch
+//      if () {
+//        links.push(["Twetch", "http://twetch.app/t/" + getUrlVars()["tx"]])
+//      }
+      // Weather.sv
+      if (r.c[0].out[0].s1 === "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn") {
+        links.push(["Weathersv.app", "https://weathersv.app/channel/" + r.c[0].out[0].s4])
+      }
       // populate default links
       links.push(["Blockchair", "https://blockchair.com/bitcoin-sv/transaction/" + getUrlVars()["tx"]])
       links.push(["Whatsonchain", "https://whatsonchain.com/tx/" + getUrlVars()["tx"]])
       links.push(["Bchsvexplorer", "https://bchsvexplorer.com/tx/" + getUrlVars()["tx"]])
+
+      console.log(links)
 
       for (let i = 0; i < links.length; ++i) {
         appendMoneybutton(i)
