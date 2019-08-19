@@ -37,48 +37,78 @@
   var appUrl = "https://link.oyo.cash/?tx={tx_hash}"
   var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
 
-  var countdown = 12; // seconds
+  var countdown = 20; // seconds
   var links = []
 
-  var generateMoneybutton = function(id) {
-    var resultHTML = ""
-    resultHTML += "<div class=\"money-button\""
-    resultHTML += "  data-label=\"" + links[id][0] + "\" "
-    resultHTML += "  data-outputs='[{"
-    resultHTML += "  \"script\": \"" + opReturnScript + "\","
-    resultHTML += "  \"amount\": \"0\","
-    resultHTML += "  \"currency\": \"BSV\""
-    resultHTML += "}, {"
-    resultHTML += "  \"address\": \"" + address + "\","
-    resultHTML += "  \"amount\": \"" + amount + "\","
-    resultHTML += "  \"currency\": \"" + currency + "\""
-    resultHTML += "}]'"
-    resultHTML += "  data-success-message=\"Redirecting...\""
-    resultHTML += "  data-button-id=\"" + id + "\" "
-    resultHTML += "  data-on-payment=\"onPayment\""
-    resultHTML += "></div><br />"
-    return resultHTML
+  var appendMoneybutton = function(id) {
+    var p = document.createElement("p");
+    var div = document.createElement("div");
+    document.getElementById("moneybuttons").appendChild(p).appendChild(div);
+    moneyButton.render(div, {
+      label: links[id][0],
+      successMessage: "Redirecting...",
+      buttonId: id,
+      onPayment: paymentReceived,
+      outputs: [
+      {
+        type: "tip",
+        to: address,
+        currency: currency,
+        amount: amount
+      }, {
+        type: "SCRIPT",
+        script: opReturnScript,
+        amount: "0",
+        currency: "BSV"
+      }]
+    })
   }
-  var generateRealLinks = function(id) {
-    var resultHTML = ""
-    resultHTML += "<div class=\"links\"><a href=\"" + links[id][1] + "\">" + links[id][0] + "</a></div><br />"
-    return resultHTML
+  var appendRealLink = function(id) {
+    var p = document.createElement("p");
+    var div = document.createElement("div");
+    var a = document.createElement("a");
+    var aText = document.createTextNode(links[id][0]);
+    a.setAttribute("href", links[id][1]);
+    a.appendChild(aText);
+    document.getElementById("realLinks").appendChild(p).appendChild(div).appendChild(a);
   }
-  var onPayment = function(payment) {
+  var paymentReceived = function(payment) {
     window.location.replace(links[payment.buttonId][1]);
   }
 
   document.getElementById("free").style.display = "none";
   document.getElementById("paid").style.display = "none";
   if (getUrlVars() !== undefined && getUrlVars()["tx"] !== undefined && getUrlVars()["tx"].match(/^[0-9a-fA-F]{64}$/)) {
+    // Get tx from neongenesis
+    var query = {
+      "v": 3,
+      "q": {
+        "find": { "tx.h": getUrlVars()["tx"] },
+        "project": { "out": 1 }
+      }
+    }
+    var b64 = btoa(JSON.stringify(query));
+    var url = "https://neongenesis.bitdb.network/q/1HcBPzWoKDL2FhCMbocQmLuFTYsiD73u1j/" + b64;
+    var header = { headers: { key: "1Ma7jy7deP3WvBqD8PwGqrZkAh4BBsP758" } };
+
+    fetch(url, header).then(function(r) {
+      return r.json()
+    }).then(function(r) {
+//          div.innerHTML = JSON.stringify(r.c);
+      // populate default links
+      links.push(["Blockchair", "https://blockchair.com/bitcoin-sv/transaction/" + getUrlVars()["tx"]])
+      links.push(["Whatsonchain", "https://whatsonchain.com/tx/" + getUrlVars()["tx"]])
+      links.push(["Bchsvexplorer", "https://bchsvexplorer.com/tx/" + getUrlVars()["tx"]])
+
+      for (let i = 0; i < links.length; ++i) {
+        appendMoneybutton(i)
+        appendRealLink(i)
+      }
+    })
+
     document.getElementById("tx_hash").innerHTML = getUrlVars()["tx"]
     document.getElementById("title").innerHTML = "Open with"
     document.getElementById("paid").style.display = "block";
-
-    // populate links
-    links.push([ "Blockchair", "https://blockchair.com/bitcoin-sv/transaction/" + getUrlVars()["tx"]])
-    links.push(["Whatsonchain", "https://whatsonchain.com/tx/" + getUrlVars()["tx"]])
-    links.push(["Bchsvexplorer", "https://bchsvexplorer.com/tx/" + getUrlVars()["tx"]])
 
     var countdownInterval = setInterval(function() {
       countdown--;
@@ -90,18 +120,6 @@
         document.getElementById("paid").style.display = "none";
       }
     }, 1000);
-
-    var moneybuttons = ""
-    for (let i = 0; i < links.length; ++i) {
-      moneybuttons += generateMoneybutton(i)
-    }
-    document.getElementById("moneybuttons").innerHTML = moneybuttons
-
-    var realLinks = ""
-    for (let i = 0; i < links.length; ++i) {
-      realLinks += generateRealLinks(i)
-    }
-    document.getElementById("realLinks").innerHTML = realLinks
   } else {
     document.getElementById("title").innerHTML = "Not a valid transaction hash"
   }
