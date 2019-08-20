@@ -23,6 +23,7 @@
           <p>
             <div id="realLinks"></div>
           </p>
+          <div id="donateMoneybutton"></div>
         </div>
       </article>
     </div>
@@ -37,8 +38,30 @@
   var appUrl = "https://link.oyo.cash/?tx={tx_hash}"
   var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
 
-  var countdown = 18; // seconds
+  var countdown = 0; // seconds
   var links = []
+
+  var donateMoneybutton = function() {
+    var donateAmount = 0.1
+    var div = document.getElementById("donateMoneybutton");
+    moneyButton.render(div, {
+      label: "Keep it free",
+      successMessage: "Thank you!",
+      outputs: [
+      {
+        type: "tip",
+        to: address,
+        currency: currency,
+        amount: donateAmount,
+        editable: true
+      }, {
+        type: "SCRIPT",
+        script: opReturnScript,
+        amount: "0",
+        currency: "BSV"
+      }]
+    })
+  }
 
   var appendMoneybutton = function(id) {
     var p = document.createElement("p");
@@ -76,7 +99,6 @@
     var id = payment.buttonId - 1   // fix for buttonId cannot be 0
     var win = window.open(links[id][1], '_blank');
     win.focus();
-//    window.location.replace(links[id][1]);
   }
 
   document.getElementById("free").style.display = "none";
@@ -146,9 +168,10 @@
       links.push(["Bchsvexplorer", "https://bchsvexplorer.com/tx/" + getUrlVars()["tx"]])
 
       for (let i = 0; i < links.length; ++i) {
-        appendMoneybutton(i)
+//        appendMoneybutton(i)
         appendRealLink(i)
       }
+      donateMoneybutton()
     })
 
     document.getElementById("tx_hash").innerHTML = getUrlVars()["tx"]
