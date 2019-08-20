@@ -123,6 +123,23 @@
       if (r.c[0].out[0].s1 === "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn") {
         links.push(["Weathersv.app", "https://weathersv.app/channel/" + r.c[0].out[0].s4])
       }
+      // meta
+      if (r.c[0].out[0].s1 === "meta") {
+        var appQuery = {
+          "v": 3,
+          "q": {
+            "find": {
+              "$or": [
+                { "node.tx": getUrlVars()["tx"]},
+                { "ancestor.tx": getUrlVars()["tx"]}
+              ]
+            }
+          }
+        }
+        var appB64 = btoa(JSON.stringify(appQuery));
+        links.push(["Metagraph", "https://metagraph.planaria.network/#" + appB64])
+        links.push(["Metanaria", "https://metanaria.planaria.network/query/" + appB64])
+      }
       // populate default links
       links.push(["Blockchair", "https://blockchair.com/bitcoin-sv/transaction/" + getUrlVars()["tx"]])
       links.push(["Whatsonchain", "https://whatsonchain.com/tx/" + getUrlVars()["tx"]])
