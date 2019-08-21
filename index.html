@@ -4,7 +4,6 @@
 <script src="https://www.moneybutton.com/moneybutton.js"></script>
 <script type="text/javascript" src="https://unpkg.com/bsv@0.27.2/bsv.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
-
 </head>
 <body>
 <div class="container is-fluid">
@@ -13,6 +12,7 @@
       <article class="tile is-child box">
         <p class="content" id="tx_hash"></p>
         <p class="title" id="title"></p>
+        <div id="txInput"></div>
         <div class="content" id="paid">
           <p>
             <div id="moneybuttons"></div>
@@ -41,6 +41,10 @@
   var countdown = 0; // seconds
   var links = []
 
+  var checkTransactionHash = function() {
+    window.open("/?tx=" +document.getElementById('txHashInput').value, "_self")
+  }
+
   var donateMoneybutton = function() {
     var donateAmount = 0.1
     var div = document.getElementById("donateMoneybutton");
@@ -62,14 +66,13 @@
       }]
     })
   }
-
   var appendMoneybutton = function(id) {
     var p = document.createElement("p");
     var div = document.createElement("div");
     document.getElementById("moneybuttons").appendChild(p).appendChild(div);
     moneyButton.render(div, {
       label: links[id][0],
-      successMessage: "Redirecting...",
+      successMessage: "Opening...",
       buttonId: id+1,   // buttonId cannot be 0
       onPayment: paymentReceived,
       outputs: [
@@ -190,9 +193,33 @@
     }, 1000);
   } else {
     document.getElementById("title").innerHTML = "Not a valid transaction hash"
+    var divField1 = document.createElement("div");
+    divField1.setAttribute("class", "field");
+    var divField2 = document.createElement("div");
+    divField2.setAttribute("class", "field");
+    var divContol1 = document.createElement("div");
+    divContol1.setAttribute("class", "control");
+    var divContol2 = document.createElement("div");
+    divContol2.setAttribute("class", "control");
+    var input = document.createElement("input");
+    input.setAttribute("id", "txHashInput");
+    input.setAttribute("class", "input");
+    input.setAttribute("type", "text");
+    input.setAttribute("placeholder", "Transaction hash");
+    var button = document.createElement("button");
+    button.setAttribute("class", "button");
+    button.setAttribute("id", "checkTxHash");
+    var buttonText = document.createTextNode("Check");
+    button.appendChild(buttonText);
+    document.getElementById("txInput").appendChild(divField1).appendChild(divContol1).appendChild(input);
+    document.getElementById("txInput").appendChild(divField2).appendChild(divContol2).appendChild(button);
   }
 
   document.addEventListener("DOMContentLoaded", function() {
+    // Check transaction hash clicked
+    document.getElementById('checkTxHash').addEventListener("click", function() {
+      checkTransactionHash()
+    })
   })
 </script>
 </body>
