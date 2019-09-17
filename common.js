@@ -16,6 +16,3 @@ function getUrlVars() {
     });
     return vars;
 }
-function redirectTo (payment) {
-  console.log(JSON.stringify(payment))
-}

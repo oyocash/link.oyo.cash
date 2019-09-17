@@ -116,54 +116,67 @@
       }
     }
     var b64 = btoa(JSON.stringify(query));
-    var url = "https://babel.bitdb.network/q/1DHDifPvtPgKFPZMRSxmVHhiPvFmxZwbfh/" + b64;
+    var url = "https://bob.planaria.network/q/1GgmC7Cg782YtQ6R9QkM58voyWeQJmJJzG/" + b64;
     var header = { headers: { key: "1Ma7jy7deP3WvBqD8PwGqrZkAh4BBsP758" } };
 
     fetch(url, header).then(function(r) {
       return r.json()
     }).then(function(r) {
       // tx not found
-      if (r.c === undefined || r.c.length !== 1) {
+      if (!((r.u !== undefined && r.u.length === 1) || (r.c !== undefined && r.c.length === 1))) {
         document.getElementById("title").innerHTML = "Transaction not found"
         return 0
       }
-      // Memo
-      if (r.c[0].out[0].h1 === "6d02" || r.c[0].out[0].h1 === "6d03") {
-        links.push(["Memo", "https://memo.sv/post/" + getUrlVars()["tx"]])
-//        links.push(["Poster", "https://poster.cash/post/" + getUrlVars()["tx"]])
+      var item
+      if (r.u.length === 1) {
+        item = r.u[0]
       }
-      // b
-      if (r.c[0].out[0].s1 === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut") {
-        links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
+      if (r.c.length === 1) {
+        item = r.c[0]
       }
-      // bcat
-      if (r.c[0].out[0].s1 === "15DHFxWZJT58f9nhyGnsRBqrgwK4W6h4Up") {
-        links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
-      }
-      // Twetch
-      if ((r.c[0].out[0].s21 === "app" && r.c[0].out[0].s22 === "twetch") || (r.c[0].out[0].s23 === "app" && r.c[0].out[0].s24 === "twetch")) {
-        links.push(["Twetch", "http://twetch.app/t/" + getUrlVars()["tx"]])
-      }
-      // Weather.sv
-      if (r.c[0].out[0].s1 === "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn") {
-        links.push(["Weathersv.app", "https://weathersv.app/channel/" + r.c[0].out[0].s4])
-      }
-      // meta
-      if (r.c[0].out[0].s1 === "meta") {
-        var appQuery = {
-          "v": 3,
-          "q": {
-            "find": {
-              "$or": [
-                { "node.tx": getUrlVars()["tx"]},
-                { "ancestor.tx": getUrlVars()["tx"]}
-              ]
+      for(let i=0; i<item.out.length; i++){
+        for(let ii=0; ii<item.out[i].tape.length; ii++){
+          console.log(JSON.stringify(item.out[i].tape[ii]))
+
+          // Memo
+          if (item.out[i].tape[ii].cell[0].b === "bQI=" || item.out[i].tape[ii].cell[0].b === "bQM=") {
+            links.push(["Memo", "https://memo.sv/post/" + getUrlVars()["tx"]])
+          //        links.push(["Poster", "https://poster.cash/post/" + getUrlVars()["tx"]])
+          }
+          // b
+          if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut") {
+            links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
+          }
+          // bcat
+          if (item.out[i].tape[ii].cell[0].s === "15DHFxWZJT58f9nhyGnsRBqrgwK4W6h4Up") {
+            links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
+          }
+          // Twetch
+          if ((item.out[i].tape[ii].cell.length >= 15 && item.out[i].tape[ii].cell[14].s === "app" && item.out[i].tape[ii].cell[15].s === "twetch") || (item.out[i].tape[ii].cell.length >= 17 && item.out[i].tape[ii].cell[16].s === "app" && item.out[i].tape[ii].cell[17].s === "twetch")) {
+            links.push(["Twetch", "http://twetch.app/t/" + getUrlVars()["tx"]])
+          }
+          // Weather.sv
+          if (item.out[i].tape[ii].cell[0].s === "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn") {
+            links.push(["Weathersv.app", "https://weathersv.app/channel/" + item.out[i].tape[ii].cell[3].s])
+          }
+          // meta
+          if (item.out[i].tape[ii].cell[0].s === "meta") {
+            var appQuery = {
+              "v": 3,
+              "q": {
+                "find": {
+                  "$or": [
+                    { "node.tx": getUrlVars()["tx"]},
+                    { "ancestor.tx": getUrlVars()["tx"]}
+                  ]
+                }
+              }
             }
+            var appB64 = btoa(JSON.stringify(appQuery));
+            links.push(["Metagraph", "https://metagraph.planaria.network/#" + appB64])
+            links.push(["Metanaria", "https://metanaria.planaria.network/query/" + appB64])
           }
         }
-        var appB64 = btoa(JSON.stringify(appQuery));
-        links.push(["Metagraph", "https://metagraph.planaria.network/#" + appB64])
-        links.push(["Metanaria", "https://metanaria.planaria.network/query/" + appB64])
       }
       // populate default links
       links.push(["Blockchair", "https://blockchair.com/bitcoin-sv/transaction/" + getUrlVars()["tx"]])
@@ -216,10 +229,18 @@
   }
 
   document.addEventListener("DOMContentLoaded", function() {
-    // Check transaction hash clicked
-    document.getElementById('checkTxHash').addEventListener("click", function() {
-      checkTransactionHash()
-    })
+    if (getUrlVars() !== undefined && getUrlVars()["tx"] !== undefined && getUrlVars()["tx"].match(/^[0-9a-fA-F]{64}$/)) {
+      // Check transaction hash clicked
+      document.getElementById('checkTxHash').addEventListener("click", function() {
+        checkTransactionHash()
+      })
+      document.getElementById('txInput').addEventListener("keyup", function(event) {
+        if (event.keyCode === 13) {
+         event.preventDefault();
+         document.getElementById("checkTxHash").click();
+        }
+    });
+    }
   })
 </script>
 </body>
