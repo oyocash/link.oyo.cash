@@ -12,19 +12,31 @@
       <article class="tile is-child box">
         <p class="content" id="tx_hash"></p>
         <p class="title" id="title"></p>
-        <div id="txInput"></div>
+        <div id="txInput">
+          <div class="field">
+            <div class="control">
+              <input id="txHashInput" class="input" type="text" placeholder="Transaction hash" />
+            </div>
+          </div>
+          <div class="field">
+            <div class="control">
+              <button id="checkTxHash" class="button">Check</button>
+            </div>
+          </div>
+        </div>
         <div class="content" id="paid">
           <p>
-            <div id="moneybuttons"></div>
+            <div id="demoLinks"></div>
           </p>
+          <div id="showLinks"></div>
           <p class="subtitle" id="timer"></p>
         </div>
         <div class="content" id="free">
           <p>
             <div id="realLinks"></div>
           </p>
-          <div id="donateMoneybutton"></div>
         </div>
+        <pre id="txContent" class="txContent"></pre>
       </article>
     </div>
   </div>
@@ -38,42 +50,20 @@
   var appUrl = "https://link.oyo.cash/?tx={tx_hash}"
   var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
 
-  var countdown = 0; // seconds
+  var countdown = 15; // seconds
   var links = []
+
+  document.getElementById("txInput").style.display = "none";
 
   var checkTransactionHash = function() {
     window.open("/?tx=" +document.getElementById('txHashInput').value, "_self")
   }
 
-  var donateMoneybutton = function() {
-    var donateAmount = 0.1
-    var div = document.getElementById("donateMoneybutton");
+  var showLinksMoneybutton = function() {
+    var div = document.getElementById("showLinks");
     moneyButton.render(div, {
-      label: "Keep it free",
-      successMessage: "Thank you!",
-      outputs: [
-      {
-        type: "tip",
-        to: address,
-        currency: currency,
-        amount: donateAmount,
-        editable: true
-      }, {
-        type: "SCRIPT",
-        script: opReturnScript,
-        amount: "0",
-        currency: "BSV"
-      }]
-    })
-  }
-  var appendMoneybutton = function(id) {
-    var p = document.createElement("p");
-    var div = document.createElement("div");
-    document.getElementById("moneybuttons").appendChild(p).appendChild(div);
-    moneyButton.render(div, {
-      label: links[id][0],
-      successMessage: "Opening...",
-      buttonId: id+1,   // buttonId cannot be 0
+      label: "Show links",
+      successMessage: "Showing...",
       onPayment: paymentReceived,
       outputs: [
       {
@@ -93,19 +83,25 @@
     var p = document.createElement("p");
     var div = document.createElement("div");
     var a = document.createElement("a");
-    var aText = document.createTextNode(links[id][0]);
+    var text = document.createTextNode(links[id][0]);
     a.setAttribute("href", links[id][1]);
-    a.appendChild(aText);
+    a.appendChild(text);
     document.getElementById("realLinks").appendChild(p).appendChild(div).appendChild(a);
   }
+  var appendDemoLink = function(id) {
+    var p = document.createElement("p");
+    var div = document.createElement("div");
+    var text = document.createTextNode(links[id][0]);
+    div.appendChild(text);
+    document.getElementById("demoLinks").appendChild(p).appendChild(div);
+  }
   var paymentReceived = function(payment) {
-    var id = payment.buttonId - 1   // fix for buttonId cannot be 0
-    var win = window.open(links[id][1], '_blank');
-    win.focus();
+    countdown = 0
   }
 
   document.getElementById("free").style.display = "none";
   document.getElementById("paid").style.display = "none";
+  document.getElementById("txContent").style.display = "none";
   if (getUrlVars() !== undefined && getUrlVars()["tx"] !== undefined && getUrlVars()["tx"].match(/^[0-9a-fA-F]{64}$/)) {
     // Get tx from neongenesis
     var query = {
@@ -134,9 +130,14 @@
       if (r.c.length === 1) {
         item = r.c[0]
       }
-      for(let i=0; i<item.out.length; i++){
-        for(let ii=0; ii<item.out[i].tape.length; ii++){
-          console.log(JSON.stringify(item.out[i].tape[ii]))
+      var txContent = ""
+      for(let i=0; i<item.out.length; i++) {
+        for(let ii=0; ii<item.out[i].tape.length; ii++) {
+          for(let iii=0; iii<item.out[i].tape[ii].cell.length; iii++) {
+            if (item.out[i].tape[ii].cell[iii].s !== undefined) {
+              txContent += item.out[i].tape[ii].cell[iii].s + "\n"
+            }
+          }
 
           // Memo
           if (item.out[i].tape[ii].cell[0].b === "bQI=" || item.out[i].tape[ii].cell[0].b === "bQM=") {
@@ -178,16 +179,19 @@
           }
         }
       }
+      // populate tx content
+      document.getElementById("txContent").innerHTML = txContent
+      document.getElementById("txContent").style.display = "block";
       // populate default links
       links.push(["Blockchair", "https://blockchair.com/bitcoin-sv/transaction/" + getUrlVars()["tx"]])
       links.push(["Whatsonchain", "https://whatsonchain.com/tx/" + getUrlVars()["tx"]])
       links.push(["Bchsvexplorer", "https://bchsvexplorer.com/tx/" + getUrlVars()["tx"]])
 
       for (let i = 0; i < links.length; ++i) {
-//        appendMoneybutton(i)
+        appendDemoLink(i)
         appendRealLink(i)
       }
-      donateMoneybutton()
+      showLinksMoneybutton()
     })
 
     document.getElementById("tx_hash").innerHTML = getUrlVars()["tx"]
@@ -206,26 +210,7 @@
     }, 1000);
   } else {
     document.getElementById("title").innerHTML = "Not a valid transaction hash"
-    var divField1 = document.createElement("div");
-    divField1.setAttribute("class", "field");
-    var divField2 = document.createElement("div");
-    divField2.setAttribute("class", "field");
-    var divContol1 = document.createElement("div");
-    divContol1.setAttribute("class", "control");
-    var divContol2 = document.createElement("div");
-    divContol2.setAttribute("class", "control");
-    var input = document.createElement("input");
-    input.setAttribute("id", "txHashInput");
-    input.setAttribute("class", "input");
-    input.setAttribute("type", "text");
-    input.setAttribute("placeholder", "Transaction hash");
-    var button = document.createElement("button");
-    button.setAttribute("class", "button");
-    button.setAttribute("id", "checkTxHash");
-    var buttonText = document.createTextNode("Check");
-    button.appendChild(buttonText);
-    document.getElementById("txInput").appendChild(divField1).appendChild(divContol1).appendChild(input);
-    document.getElementById("txInput").appendChild(divField2).appendChild(divContol2).appendChild(button);
+    document.getElementById("txInput").style.display = "block";
   }
 
   document.addEventListener("DOMContentLoaded", function() {
