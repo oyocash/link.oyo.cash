@@ -144,6 +144,14 @@
             links.push(["Memo", "https://memo.sv/post/" + getUrlVars()["tx"]])
           //        links.push(["Poster", "https://poster.cash/post/" + getUrlVars()["tx"]])
           }
+          // Twetch
+          if ((item.out[i].tape[ii].cell.length >= 15 && item.out[i].tape[ii].cell[14].s === "app" && item.out[i].tape[ii].cell[15].s === "twetch") || (item.out[i].tape[ii].cell.length >= 17 && item.out[i].tape[ii].cell[16].s === "app" && item.out[i].tape[ii].cell[17].s === "twetch")) {
+            links.push(["Twetch", "http://twetch.app/t/" + getUrlVars()["tx"]])
+          }
+          // Weiblock
+          if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut" && item.out[i].tape[ii].cell[1].s.startsWith("{\"weiblock\":")) {
+            links.push(["Weiblock", "https://weiblock.app/tx?tx=" + getUrlVars()["tx"]])
+          }
           // b
           if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut") {
             links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
@@ -151,10 +159,6 @@
           // bcat
           if (item.out[i].tape[ii].cell[0].s === "15DHFxWZJT58f9nhyGnsRBqrgwK4W6h4Up") {
             links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
-          }
-          // Twetch
-          if ((item.out[i].tape[ii].cell.length >= 15 && item.out[i].tape[ii].cell[14].s === "app" && item.out[i].tape[ii].cell[15].s === "twetch") || (item.out[i].tape[ii].cell.length >= 17 && item.out[i].tape[ii].cell[16].s === "app" && item.out[i].tape[ii].cell[17].s === "twetch")) {
-            links.push(["Twetch", "http://twetch.app/t/" + getUrlVars()["tx"]])
           }
           // Weather.sv
           if (item.out[i].tape[ii].cell[0].s === "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn") {
