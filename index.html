@@ -1,6 +1,6 @@
 <html>
 <head>
-<script src="common.js"></script>
+<script src="/common.js"></script>
 <script src="https://www.moneybutton.com/moneybutton.js"></script>
 <script type="text/javascript" src="https://unpkg.com/bsv@0.27.2/bsv.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
@@ -214,18 +214,16 @@
   }
 
   document.addEventListener("DOMContentLoaded", function() {
-    if (getUrlVars() !== undefined && getUrlVars()["tx"] !== undefined && getUrlVars()["tx"].match(/^[0-9a-fA-F]{64}$/)) {
-      // Check transaction hash clicked
-      document.getElementById('checkTxHash').addEventListener("click", function() {
-        checkTransactionHash()
-      })
-      document.getElementById('txInput').addEventListener("keyup", function(event) {
-        if (event.keyCode === 13) {
-         event.preventDefault();
-         document.getElementById("checkTxHash").click();
-        }
+    // Check transaction hash clicked
+    document.getElementById('checkTxHash').addEventListener("click", function() {
+      checkTransactionHash()
+    })
+    document.getElementById('txInput').addEventListener("keyup", function(event) {
+      if (event.keyCode === 13) {
+       event.preventDefault();
+       document.getElementById("checkTxHash").click();
+      }
     });
-    }
   })
 </script>
 </body>
