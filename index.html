@@ -137,6 +137,9 @@
             if (item.out[i].tape[ii].cell[iii].s !== undefined) {
               txContent += item.out[i].tape[ii].cell[iii].s + "\n"
             }
+            if (item.out[i].tape[ii].cell[iii].ls !== undefined) {
+              txContent += item.out[i].tape[ii].cell[iii].ls + "\n"
+            }
           }
 
           // Memo
@@ -149,11 +152,12 @@
             links.push(["Twetch", "http://twetch.app/t/" + getUrlVars()["tx"]])
           }
           // Weiblock
-          if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut" && item.out[i].tape[ii].cell[1].s.startsWith("{\"weiblock\":")) {
+          if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut" && item.out[i].tape[ii].cell[1].s !== undefined && item.out[i].tape[ii].cell[1].s.startsWith("{\"weiblock\":")) {
             links.push(["Weiblock", "https://weiblock.app/tx?tx=" + getUrlVars()["tx"]])
           }
           // b
           if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut") {
+            links.push(["Bitpaste", "https://www.bitpaste.app/tx/" + getUrlVars()["tx"]])
             links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
           }
           // bcat
