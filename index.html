@@ -135,7 +135,16 @@
         for(let ii=0; ii<item.out[i].tape.length; ii++) {
           for(let iii=0; iii<item.out[i].tape[ii].cell.length; iii++) {
             if (item.out[i].tape[ii].cell[iii].s !== undefined) {
-              txContent += item.out[i].tape[ii].cell[iii].s + "\n"
+              var cellS = item.out[i].tape[ii].cell[iii].s
+              let match = cellS.match(/^[0-9a-fA-F]{64}$/u)
+              if (match) {
+                txContent += '<a href="https://link.oyo.cash/?tx=' + cellS + '">' + cellS + "</a>\n"
+              } else if (validURL(cellS)) {
+                txContent += '<a href="' + cellS + '">' + cellS + "</a>\n"
+                console.log("here")
+              } else {
+                txContent += cellS + "\n"
+              }
             }
             if (item.out[i].tape[ii].cell[iii].ls !== undefined) {
               txContent += item.out[i].tape[ii].cell[iii].ls + "\n"

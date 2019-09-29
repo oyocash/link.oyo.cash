@@ -3,11 +3,15 @@ async function fetchHtmlAsText(url) {
 }
 async function loadNav() {
     const contentDiv = document.getElementById("nav");
-    contentDiv.innerHTML = await fetchHtmlAsText("nav.html");
+    if (contentDiv !== null) {
+      contentDiv.innerHTML = await fetchHtmlAsText("/includes/nav.html");
+    }
 }
 async function loadFooter() {
     const contentDiv = document.getElementById("footer");
-    contentDiv.innerHTML = await fetchHtmlAsText("footer.html");
+    if (contentDiv !== null) {
+      contentDiv.innerHTML = await fetchHtmlAsText("/includes/footer.html");
+    }
 }
 function getUrlVars() {
     var vars = {};
@@ -15,4 +19,13 @@ function getUrlVars() {
         vars[key] = value;
     });
     return vars;
+}
+function validURL(str) {
+  var pattern = new RegExp('^(https?:\\/\\/)'+ // protocol
+    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+    '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+    '(\\:\\d+)?(\\/[-a-z\\d%_.~\{\}+]*)*'+ // port and path
+    '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+    '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+  return !!pattern.test(str);
 }
