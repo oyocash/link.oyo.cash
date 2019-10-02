@@ -28,7 +28,7 @@
           <p>
             <div id="demoLinks"></div>
           </p>
-          <div id="showLinks"></div>
+          <div id="showLinksMB"></div>
           <p class="subtitle" id="timer"></p>
         </div>
         <div class="content" id="free">
@@ -50,7 +50,7 @@
   var appUrl = "https://link.oyo.cash/?tx={tx_hash}"
   var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
 
-  var countdown = 15; // seconds
+  var countdown = 30; // seconds
   var links = []
 
   document.getElementById("txInput").style.display = "none";
@@ -60,7 +60,7 @@
   }
 
   var showLinksMoneybutton = function() {
-    var div = document.getElementById("showLinks");
+    var div = document.getElementById("showLinksMB");
     moneyButton.render(div, {
       label: "Show links",
       successMessage: "Showing...",
@@ -159,6 +159,8 @@
           // Twetch
           if ((item.out[i].tape[ii].cell.length >= 15 && item.out[i].tape[ii].cell[14].s === "app" && item.out[i].tape[ii].cell[15].s === "twetch") || (item.out[i].tape[ii].cell.length >= 17 && item.out[i].tape[ii].cell[16].s === "app" && item.out[i].tape[ii].cell[17].s === "twetch")) {
             links.push(["Twetch", "http://twetch.app/t/" + getUrlVars()["tx"]])
+            type = "mapApp"
+            appName = "twetch"
           }
           // Weiblock
           if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut" && item.out[i].tape[ii].cell[1].s !== undefined && item.out[i].tape[ii].cell[1].s.startsWith("{\"weiblock\":")) {
@@ -168,14 +170,20 @@
           if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut") {
             links.push(["Bitpaste", "https://www.bitpaste.app/tx/" + getUrlVars()["tx"]])
             links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
+            type = "baseProtocol"
+            appName = "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut"
           }
           // bcat
           if (item.out[i].tape[ii].cell[0].s === "15DHFxWZJT58f9nhyGnsRBqrgwK4W6h4Up") {
             links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
+            type = "baseProtocol"
+            appName = "15DHFxWZJT58f9nhyGnsRBqrgwK4W6h4Up"
           }
           // Weather.sv
           if (item.out[i].tape[ii].cell[0].s === "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn") {
             links.push(["Weathersv.app", "https://weathersv.app/channel/" + item.out[i].tape[ii].cell[3].s])
+            type = "baseProtocol"
+            appName = "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn"
           }
           // meta
           if (item.out[i].tape[ii].cell[0].s === "meta") {
