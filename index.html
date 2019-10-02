@@ -59,6 +59,7 @@
   }
 
   var showLinksMoneybutton = function() {
+    var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
     var div = document.getElementById("showLinksMB");
     moneyButton.render(div, {
       label: "Show links",
