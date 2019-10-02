@@ -1,6 +1,6 @@
 <html>
 <head>
-<script src="/common.js?v=3009201901"></script>
+<script src="/common.js?v=0210201901"></script>
 <script src="https://www.moneybutton.com/moneybutton.js"></script>
 <script type="text/javascript" src="https://unpkg.com/bsv@0.27.2/bsv.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
@@ -48,7 +48,6 @@
   var type = "default"
   var appName = "default"
   var appUrl = "https://link.oyo.cash/?tx={tx_hash}"
-  var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
 
   var countdown = 30; // seconds
   var links = []
@@ -216,6 +215,7 @@
         appendDemoLink(i)
         appendRealLink(i)
       }
+      var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
       showLinksMoneybutton()
     })
 
