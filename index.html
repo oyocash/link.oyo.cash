@@ -49,7 +49,7 @@
   var appName = "default"
   var appUrl = "https://link.oyo.cash/?tx={tx_hash}"
 
-  var countdown = 30; // seconds
+  var countdown = 0; // seconds
   var links = []
 
   document.getElementById("txInput").style.display = "none";
@@ -103,7 +103,7 @@
   document.getElementById("paid").style.display = "none";
   document.getElementById("txContent").style.display = "none";
   if (getUrlVars() !== undefined && getUrlVars()["tx"] !== undefined && getUrlVars()["tx"].match(/^[0-9a-fA-F]{64}$/)) {
-    // Get tx from neongenesis
+    // Get tx from bob
     var query = {
       "v": 3,
       "q": {
