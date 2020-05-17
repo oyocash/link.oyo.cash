@@ -1,7 +1,7 @@
 <html>
 <head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <script src="/common.js?v=0210201901"></script>
-<script src="https://www.moneybutton.com/moneybutton.js"></script>
 <script type="text/javascript" src="https://unpkg.com/bsv@0.27.2/bsv.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
 </head>
@@ -57,28 +57,6 @@
   var checkTransactionHash = function() {
     window.open("/?tx=" +document.getElementById('txHashInput').value, "_self")
   }
-
-  var showLinksMoneybutton = function() {
-    var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
-    var div = document.getElementById("showLinksMB");
-    moneyButton.render(div, {
-      label: "Show links",
-      successMessage: "Showing...",
-      onPayment: paymentReceived,
-      outputs: [
-      {
-        type: "tip",
-        to: address,
-        currency: currency,
-        amount: amount
-      }, {
-        type: "SCRIPT",
-        script: opReturnScript,
-        amount: "0",
-        currency: "BSV"
-      }]
-    })
-  }
   var appendRealLink = function(id) {
     var p = document.createElement("p");
     var div = document.createElement("div");
@@ -111,113 +89,148 @@
         "project": { "out": 1 }
       }
     }
-    var b64 = btoa(JSON.stringify(query));
-    var url = "https://bob.planaria.network/q/1GgmC7Cg782YtQ6R9QkM58voyWeQJmJJzG/" + b64;
-    var header = { headers: { key: "1Ma7jy7deP3WvBqD8PwGqrZkAh4BBsP758" } };
+    var planariaToken = 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxS3NOWUE5Y0RHZ2tzcW5SUG1CVm9lQnl1RXpianFlaERLIiwiaXNzdWVyIjoiZ2VuZXJpYy1iaXRhdXRoIn0.SDZxQ08zN0tGVWE4VkFWTG9CQTgxNGlGZkNNTEhRSmRTdzZkb0dQZGp1cklhTU9KYXQ5Nmx6dVVwM09Xa3pCaXc5ZkJhejdvV0lOcHlnMEhpRVJlSnd3PQ'
+    var url = "https://bob.bitbus.network/block/";
 
-    fetch(url, header).then(function(r) {
-      return r.json()
-    }).then(function(r) {
-      // tx not found
-      if (!((r.u !== undefined && r.u.length === 1) || (r.c !== undefined && r.c.length === 1))) {
-        document.getElementById("title").innerHTML = "Transaction not found"
-        return 0
-      }
-      var item
-      if (r.u.length === 1) {
-        item = r.u[0]
-      }
-      if (r.c.length === 1) {
-        item = r.c[0]
-      }
-      var txContent = ""
-      for(let i=0; i<item.out.length; i++) {
-        for(let ii=0; ii<item.out[i].tape.length; ii++) {
-          for(let iii=0; iii<item.out[i].tape[ii].cell.length; iii++) {
-            if (item.out[i].tape[ii].cell[iii].s !== undefined) {
-              var cellS = item.out[i].tape[ii].cell[iii].s
-              let match = cellS.match(/^[0-9a-fA-F]{64}$/u)
-              if (match) {
-                txContent += '<a href="https://link.oyo.cash/?tx=' + cellS + '">' + cellS + "</a>\n"
-              } else if (validURL(cellS)) {
-                txContent += '<a href="' + cellS + '">' + cellS + "</a>\n"
-                console.log("here")
-              } else {
-                txContent += cellS + "\n"
+    let fetchParams = {
+      method: "post",
+      headers: {
+        'Content-type': 'application/json; charset=utf-8',
+        'token': planariaToken,
+        "format": "json"
+      },
+      body: JSON.stringify(query)
+    }
+
+    var fetchResponse = ""
+    const decoder = new TextDecoder('utf-8');
+
+    fetch(url, fetchParams)
+    // Retrieve its body as ReadableStream
+    .then(response => response.body)
+    .then(rs => {
+      const reader = rs.getReader();
+
+      return new ReadableStream({
+        async start(controller) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (value) {
+              var decoded = decoder.decode(value);
+              fetchResponse = decoded;
+            }
+
+            // When no more data needs to be consumed, break the reading
+            if (done) {
+              if (!fetchResponse) {
+                document.getElementById("title").innerHTML = "Transaction not found"
+                return 0
               }
-            }
-            if (item.out[i].tape[ii].cell[iii].ls !== undefined) {
-              txContent += item.out[i].tape[ii].cell[iii].ls + "\n"
-            }
-          }
 
-          // Memo
-          if (item.out[i].tape[ii].cell[0].b === "bQI=" || item.out[i].tape[ii].cell[0].b === "bQM=") {
-            links.push(["Memo", "https://memo.sv/post/" + getUrlVars()["tx"]])
-          //        links.push(["Poster", "https://poster.cash/post/" + getUrlVars()["tx"]])
-          }
-          // Twetch
-          if ((item.out[i].tape[ii].cell.length >= 15 && item.out[i].tape[ii].cell[14].s === "app" && item.out[i].tape[ii].cell[15].s === "twetch") || (item.out[i].tape[ii].cell.length >= 17 && item.out[i].tape[ii].cell[16].s === "app" && item.out[i].tape[ii].cell[17].s === "twetch")) {
-            links.push(["Twetch", "http://twetch.app/t/" + getUrlVars()["tx"]])
-            type = "mapApp"
-            appName = "twetch"
-          }
-          // Weiblock
-          if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut" && item.out[i].tape[ii].cell[1].s !== undefined && item.out[i].tape[ii].cell[1].s.startsWith("{\"weiblock\":")) {
-            links.push(["Weiblock", "https://weiblock.app/tx?tx=" + getUrlVars()["tx"]])
-          }
-          // b
-          if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut") {
-            links.push(["Bitpaste", "https://www.bitpaste.app/tx/" + getUrlVars()["tx"]])
-            links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
-            type = "baseProtocol"
-            appName = "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut"
-          }
-          // bcat
-          if (item.out[i].tape[ii].cell[0].s === "15DHFxWZJT58f9nhyGnsRBqrgwK4W6h4Up") {
-            links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
-            type = "baseProtocol"
-            appName = "15DHFxWZJT58f9nhyGnsRBqrgwK4W6h4Up"
-          }
-          // Weather.sv
-          if (item.out[i].tape[ii].cell[0].s === "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn") {
-            links.push(["Weathersv.app", "https://weathersv.app/channel/" + item.out[i].tape[ii].cell[3].s])
-            type = "baseProtocol"
-            appName = "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn"
-          }
-          // meta
-          if (item.out[i].tape[ii].cell[0].s === "meta") {
-            var appQuery = {
-              "v": 3,
-              "q": {
-                "find": {
-                  "$or": [
-                    { "node.tx": getUrlVars()["tx"]},
-                    { "ancestor.tx": getUrlVars()["tx"]}
-                  ]
+              var items = JSON.parse(fetchResponse)
+              var item = items[0]
+
+              console.log(item)
+
+              var txContent = ""
+              for(let i=0; i<item.out.length; i++) {
+                for(let ii=0; ii<item.out[i].tape.length; ii++) {
+                  for(let iii=0; iii<item.out[i].tape[ii].cell.length; iii++) {
+                    if (item.out[i].tape[ii].cell[iii].s !== undefined) {
+                      var cellS = item.out[i].tape[ii].cell[iii].s
+                      let match = cellS.match(/^[0-9a-fA-F]{64}$/u)
+                      if (match) {
+                        txContent += '<a href="https://link.oyo.cash/?tx=' + cellS + '">' + cellS + "</a>\n"
+                      } else if (validURL(cellS)) {
+                        txContent += '<a href="' + cellS + '">' + cellS + "</a>\n"
+                      } else {
+                        txContent += cellS + "\n"
+                      }
+                    }
+                    if (item.out[i].tape[ii].cell[iii].ls !== undefined) {
+                      txContent += item.out[i].tape[ii].cell[iii].ls + "\n"
+                    }
+                  }
+
+                  // Memo
+                  if (item.out[i].tape[ii].cell[0].b === "bQI=" || item.out[i].tape[ii].cell[0].b === "bQM=") {
+                    links.push(["Memo", "https://memo.sv/post/" + getUrlVars()["tx"]])
+                  //        links.push(["Poster", "https://poster.cash/post/" + getUrlVars()["tx"]])
+                  }
+                  // Twetch
+                  if ((item.out[i].tape[ii].cell.length >= 15 && item.out[i].tape[ii].cell[14].s === "app" && item.out[i].tape[ii].cell[15].s === "twetch") || (item.out[i].tape[ii].cell.length >= 17 && item.out[i].tape[ii].cell[16].s === "app" && item.out[i].tape[ii].cell[17].s === "twetch")) {
+                    links.push(["Twetch", "http://twetch.app/t/" + getUrlVars()["tx"]])
+                    type = "mapApp"
+                    appName = "twetch"
+                  }
+                  // Weiblock
+                  if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut" && item.out[i].tape[ii].cell[1].s !== undefined && item.out[i].tape[ii].cell[1].s.startsWith("{\"weiblock\":")) {
+                    links.push(["Weiblock", "https://weiblock.app/tx?tx=" + getUrlVars()["tx"]])
+                  }
+                  // b
+                  if (item.out[i].tape[ii].cell[0].s === "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut") {
+                    links.push(["Bitpaste", "https://www.bitpaste.app/tx/" + getUrlVars()["tx"]])
+                    links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
+                    type = "baseProtocol"
+                    appName = "19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut"
+                  }
+                  // bcat
+                  if (item.out[i].tape[ii].cell[0].s === "15DHFxWZJT58f9nhyGnsRBqrgwK4W6h4Up") {
+                    links.push(["Bico.media", "https://bico.media/" + getUrlVars()["tx"]])
+                    type = "baseProtocol"
+                    appName = "15DHFxWZJT58f9nhyGnsRBqrgwK4W6h4Up"
+                  }
+                  // Weather.sv
+                  if (item.out[i].tape[ii].cell[0].s === "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn") {
+                    links.push(["Weathersv.app", "https://weathersv.app/channel/" + item.out[i].tape[ii].cell[3].s])
+                    type = "baseProtocol"
+                    appName = "1LtyME6b5AnMopQrBPLk4FGN8UBuhxKqrn"
+                  }
+                  // meta
+                  if (item.out[i].tape[ii].cell[0].s === "meta") {
+                    var appQuery = {
+                      "v": 3,
+                      "q": {
+                        "find": {
+                          "$or": [
+                            { "node.tx": getUrlVars()["tx"]},
+                            { "ancestor.tx": getUrlVars()["tx"]}
+                          ]
+                        }
+                      }
+                    }
+                    var appB64 = btoa(JSON.stringify(appQuery));
+                    links.push(["Metagraph", "https://metagraph.planaria.network/#" + appB64])
+                    links.push(["Metanaria", "https://metanaria.planaria.network/query/" + appB64])
+                  }
                 }
               }
-            }
-            var appB64 = btoa(JSON.stringify(appQuery));
-            links.push(["Metagraph", "https://metagraph.planaria.network/#" + appB64])
-            links.push(["Metanaria", "https://metanaria.planaria.network/query/" + appB64])
-          }
-        }
-      }
-      // populate tx content
-      document.getElementById("txContent").innerHTML = txContent
-      document.getElementById("txContent").style.display = "block";
-      // populate default links
-      links.push(["Blockchair", "https://blockchair.com/bitcoin-sv/transaction/" + getUrlVars()["tx"]])
-      links.push(["Whatsonchain", "https://whatsonchain.com/tx/" + getUrlVars()["tx"]])
-      links.push(["Bchsvexplorer", "https://bchsvexplorer.com/tx/" + getUrlVars()["tx"]])
+              // populate tx content
+              document.getElementById("txContent").innerHTML = txContent
+              document.getElementById("txContent").style.display = "block";
+              // populate default links
+              links.push(["Blockchair", "https://blockchair.com/bitcoin-sv/transaction/" + getUrlVars()["tx"]])
+              links.push(["Whatsonchain", "https://whatsonchain.com/tx/" + getUrlVars()["tx"]])
+              links.push(["Bchsvexplorer", "https://bchsvexplorer.com/tx/" + getUrlVars()["tx"]])
 
-      for (let i = 0; i < links.length; ++i) {
-        appendDemoLink(i)
-        appendRealLink(i)
-      }
-      var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
-      showLinksMoneybutton()
+              for (let i = 0; i < links.length; ++i) {
+                appendDemoLink(i)
+                appendRealLink(i)
+              }
+              var opReturnScript = bsv.Script.buildDataOut([address, type, appName, appUrl]).toASM()
+
+              break;
+            }
+
+            // Enqueue the next data chunk into our target stream
+            controller.enqueue(value);
+          }
+
+          // Close the stream
+          controller.close();
+          reader.releaseLock();
+        }
+      })
     })
 
     document.getElementById("tx_hash").innerHTML = getUrlVars()["tx"]
